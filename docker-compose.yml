@@ -1,0 +1,220 @@
+
+services:
+  # -------------------------
+  # Databases
+  # -------------------------
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_USER: tm_user
+      POSTGRES_PASSWORD: tm_pass
+      POSTGRES_DB: auth_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./auth-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tm_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-flag:
+    image: postgres:15-alpine
+    container_name: postgres-flag
+    environment:
+      POSTGRES_USER: tm_user
+      POSTGRES_PASSWORD: tm_pass
+      POSTGRES_DB: flags_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./flag-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_flag_data:/var/lib/postgresql/data
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tm_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-targeting:
+    image: postgres:15-alpine
+    container_name: postgres-targeting
+    environment:
+      POSTGRES_USER: tm_user
+      POSTGRES_PASSWORD: tm_pass
+      POSTGRES_DB: targeting_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./targeting-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_targeting_data:/var/lib/postgresql/data
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "tm_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  localstack:
+    image: localstack/localstack:3.0
+    container_name: localstack
+    environment:
+      SERVICES: sqs,dynamodb
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "4566:4566"   # Porta padrão do LocalStack (tudo via edge)
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - ./localstack-init.sh:/etc/localstack/init/ready.d/localstack-init.sh
+    networks:
+      - togglemaster_net
+
+  # -------------------------
+  # Microservices
+  # -------------------------
+  auth-service:
+    build: ./auth-service
+    image: rivachef/auth-service:v1
+    container_name: auth-service
+    env_file:
+      - ./auth-service/.env
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+
+  flag-service:
+    build: ./flag-service
+    image: rivachef/flag-service:v1
+    container_name: flag-service
+    env_file:
+      - ./flag-service/.env
+    depends_on:
+      postgres-flag:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    ports:
+      - "8002:8002"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+
+  targeting-service:
+    build: ./targeting-service
+    image: rivachef/targeting-service:v1
+    container_name: targeting-service
+    env_file:
+      - ./targeting-service/.env
+    depends_on:
+      postgres-targeting:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    ports:
+      - "8003:8003"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+
+  evaluation-service:
+    build: ./evaluation-service
+    image: rivachef/evaluation-service:v1
+    container_name: evaluation-service
+    env_file:
+      - ./evaluation-service/.env
+    depends_on:
+      flag-service:
+        condition: service_healthy
+      targeting-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    ports:
+      - "8004:8004"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+
+  analytics-service:
+    build: ./analytics-service
+    image: rivachef/analytics-service:v1
+    container_name: analytics-service
+    env_file:
+      - ./analytics-service/.env
+    depends_on:
+      evaluation-service:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    ports:
+      - "8005:8005"
+    networks:
+      - togglemaster_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      retries: 3
+      timeout: 5s
+
+# -------------------------
+# Volumes
+# -------------------------
+volumes:
+  postgres_auth_data:
+  postgres_flag_data:
+  postgres_targeting_data:
+  localstack_data:
+
+# -------------------------
+# Networks
+# -------------------------
+networks:
+  togglemaster_net:
+    driver: bridge

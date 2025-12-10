@@ -1,0 +1,15 @@
+[submodule "auth-service"]
+	path = auth-service
+	url = https://github.com/rivachef/auth-service
+[submodule "flag-service"]
+	path = flag-service
+	url = https://github.com/rivachef/flag-service
+[submodule "targeting-service"]
+	path = targeting-service
+	url = https://github.com/rivachef/targeting-service
+[submodule "evaluation-service"]
+	path = evaluation-service
+	url = https://github.com/rivachef/evaluation-service
+[submodule "analytics-service"]
+	path = analytics-service
+	url = https://github.com/rivachef/analytics-service
