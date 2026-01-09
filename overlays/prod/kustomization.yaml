@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+resources:
+  - ../../base/
+images:
+  - name: rivachef/auth-service
+    newTag: prod-v1
+  - name: rivachef/flag-service
+    newTag: prod-v1
+  - name: rivachef/targeting-service
+    newTag: prod-v1
+  - name: rivachef/evaluation-service
+    newTag: prod-v1
+  - name: rivachef/analytics-service
+    newTag: prod-v1
+patchesStrategicMerge:
+  - patch-replicas-prod.yaml

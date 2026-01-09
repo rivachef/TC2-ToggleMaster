@@ -1,0 +1,47 @@
+apiVersion: skaffold/v4
+kind: Config
+metadata:
+  name: togglemaster
+build:
+  artifacts:
+    - image: rivachef/auth-service
+      context: auth-service
+      docker:
+        dockerfile: Dockerfile
+      tag: v1
+    - image: rivachef/flag-service
+      context: flag-service
+      docker:
+        dockerfile: Dockerfile
+      tag: v1
+    - image: rivachef/targeting-service
+      context: targeting-service
+      docker:
+        dockerfile: Dockerfile
+      tag: v1
+    - image: rivachef/evaluation-service
+      context: evaluation-service
+      docker:
+        dockerfile: Dockerfile
+      tag: v1
+    - image: rivachef/analytics-service
+      context: analytics-service
+      docker:
+        dockerfile: Dockerfile
+      tag: v1
+  local:
+    useBuildkit: true
+    push: false  # usamos imagens locais (para kind)
+deploy:
+  kubectl:
+    manifests:
+      - k8s/overlays/homolog/*
+profiles:
+  - name: prod
+    build:
+      local:
+        push: true
+    deploy:
+      kubectl:
+        manifests:
+          - k8s/overlays/prod/*

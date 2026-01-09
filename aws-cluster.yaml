@@ -1,0 +1,16 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: togglemaster-cluster
+  region: us-east-1
+
+nodeGroups:
+  - name: ng-general
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 4
+    volumeSize: 20
+    ssh:
+      allow: false

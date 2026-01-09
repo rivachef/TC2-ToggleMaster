@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+resources:
+  - ../../base/  # aqui o base com todos os manifests compartilhados
+patchesStrategicMerge:
+  - patch-replicas-homolog.yaml
+images:
+  - name: rivachef/auth-service
+    newTag: v1
+  - name: rivachef/flag-service
+    newTag: v1
+  - name: rivachef/targeting-service
+    newTag: v1
+  - name: rivachef/evaluation-service
+    newTag: v1
+  - name: rivachef/analytics-service
+    newTag: v1
