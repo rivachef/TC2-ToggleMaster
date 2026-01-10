@@ -67,18 +67,18 @@ aws rds create-db-instance \
 
   
 # Criar Redis Cluster no AWS ElastiCache
-#aws elasticache create-cache-cluster \
-#  --cache-cluster-id $REDIS_NAME \
-#  --cache-node-type cache.t3.micro \
-#  --engine redis \
-#  --num-cache-nodes 1 \
-#  --cache-subnet-group-name $REDIS_SNET_GROUP_NAME \
-#  --security-group-ids $REDIS_SG_IDS
+aws elasticache create-cache-cluster \
+  --cache-cluster-id $REDIS_NAME \
+  --cache-node-type cache.t3.micro \
+  --engine redis \
+  --num-cache-nodes 1 \
+  --cache-subnet-group-name $REDIS_SNET_GROUP_NAME \
+  --security-group-ids $REDIS_SG_IDS
 
 # Criar SQS Queue no AWS
-#  aws sqs create-queue \
-#  --queue-name $SQS_NAME \
-#  --attributes VisibilityTimeout=30,MessageRetentionPeriod=86400
+  aws sqs create-queue \
+  --queue-name $SQS_NAME \
+  --attributes VisibilityTimeout=30,MessageRetentionPeriod=86400
 
 # Criar DynamoDB Table no AWS
 aws dynamodb create-table \
