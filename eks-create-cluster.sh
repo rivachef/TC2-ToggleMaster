@@ -30,6 +30,14 @@ aws eks wait cluster-active \
   --name $CLUSTER_NAME \
   --region $REGION
 
+# ===== CRIAR LAUNCH TEMPLATE =====
+aws ec2 create-launch-template \
+  --launch-template-name my-eks-nodes-lt \
+  --version-description "EKS Nodes with Custom SG" \
+  --launch-template-data '{
+    "SecurityGroupIds": ["sg-07bdad4d32923f41a"]
+  }'
+
 # ===== CRIAR NODE GROUP =====
 aws eks create-nodegroup \
   --cluster-name $CLUSTER_NAME \
@@ -40,6 +48,7 @@ aws eks create-nodegroup \
   --instance-types $INSTANCE_TYPE \
   --ami-type AL2023_x86_64_STANDARD \
   --node-role $NODE_ROLE_ARN
+  --launch-template name=my-eks-nodes-lt
 
 echo "⏳ Aguardando node group ficar ACTIVE..."
 aws eks wait nodegroup-active \

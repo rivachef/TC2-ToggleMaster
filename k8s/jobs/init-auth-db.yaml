@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-auth-db
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: psql
+        image: postgres:17
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: auth-db-secret
+              key: password
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            until pg_isready -h auth-db.cxbowapyjusr.us-east-1.rds.amazonaws.com -U tm_user; do
+              echo "Waiting for DB..."
+              sleep 5
+            done
+
+            psql -h auth-db.cxbowapyjusr.us-east-1.rds.amazonaws.com \
+                 -U tm_user \
+                 -d auth_db \
+                 -f /sql/init.sql
+        volumeMounts:
+        - name: sql
+          mountPath: /sql
+      volumes:
+      - name: sql
+        configMap:
+          name: auth-init-sql
