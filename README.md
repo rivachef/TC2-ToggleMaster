@@ -23,6 +23,7 @@ kubectl get svc -n ingress-nginx
 ## 
 kubectl apply -f .\namespace\namespace.yaml
 kubectl apply -f .\k8s\ingress.yaml
+kubectl apply -f .\k8s\auth-service\db\
 kubectl apply -f .\k8s\auth-service\
 kubectl apply -f .\k8s\flag-service\
 kubectl apply -f .\k8s\targeting-service\

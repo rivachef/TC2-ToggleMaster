@@ -47,7 +47,7 @@ aws eks create-nodegroup \
   --subnets subnet-0cc4880a7c9de8309 subnet-08a35322a9964ad86 \
   --instance-types $INSTANCE_TYPE \
   --ami-type AL2023_x86_64_STANDARD \
-  --node-role $NODE_ROLE_ARN
+  --node-role $NODE_ROLE_ARN \
   --launch-template name=my-eks-nodes-lt
 
 echo "⏳ Aguardando node group ficar ACTIVE..."
