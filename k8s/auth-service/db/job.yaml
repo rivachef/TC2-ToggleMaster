@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: auth-db-init-job
+  namespace: togglemaster
 spec:
   backoffLimit: 3
   template:

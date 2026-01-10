@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: flag-db-init
+  name: flag-db-init-sql
   namespace: togglemaster
 data:
   init.sql: |
